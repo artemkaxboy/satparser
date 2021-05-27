@@ -85,18 +85,18 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-val username = System.getenv("CONTAINER_REGISTRY_USERNAME") ?: ""
+val user = System.getenv("CONTAINER_REGISTRY_USERNAME") ?: ""
 val token = System.getenv("CONTAINER_REGISTRY_TOKEN") ?: ""
 
 println("------------------------------------------------------------")
-println(username)
+println(user)
 println(token)
 println("------------------------------------------------------------")
 
 jib {
     to {
         auth {
-            username = username
+            username = user
             password = token
         }
         image = "${dockerRegistry}${project.name}:${project.version}"
