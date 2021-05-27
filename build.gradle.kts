@@ -85,9 +85,15 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-// run `./gradlew jib -P dockerRegistry={server:port}`
+val username = System.getenv("CONTAINER_REGISTRY_USERNAME") ?: ""
+val token = System.getenv("CONTAINER_REGISTRY_TOKEN") ?: ""
+
 jib {
     to {
+        auth {
+            username = "artemkaxboy"
+            password = token
+        }
         image = "${dockerRegistry}${project.name}:${project.version}"
     }
 
