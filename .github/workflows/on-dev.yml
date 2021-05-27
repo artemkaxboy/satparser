@@ -35,7 +35,7 @@ jobs:
         with:
           arguments: |
             jib -Djib.to.auth.username=${{ github.actor }}
-                -Djib.to.auth.password=${{ secrets.CONTAINER_REGISTRY_TOKEN }}
+                -Djib.to.auth.password=${{ github.actor }}
 
 #      - name: Run check
 #        # @doc https://github.com/eskatos/gradle-command-action
