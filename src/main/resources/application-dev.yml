@@ -1,0 +1,4 @@
+logging.level.com.artemkaxboy: DEBUG
+
+dev.log-generator: false
+#dev.test-task-interval: 2s
