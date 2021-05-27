@@ -36,12 +36,13 @@ jobs:
       - name: Test
         env:
           CONTAINER_REGISTRY_TOKEN: ${{ secrets.CONTAINER_REGISTRY_TOKEN }}
+          TEST_TOKEN: ${{ github.actor }}
         run: export
 
       - name: Test
         env:
           CONTAINER_REGISTRY_TOKEN: ${{ secrets.CONTAINER_REGISTRY_TOKEN }}
-        run: echo $CONTAINER_REGISTRY_TOKEN
+        run: echo $secrets.CONTAINER_REGISTRY_TOKEN
 
       - name: Publish docker image
         uses: eskatos/gradle-command-action@v1
