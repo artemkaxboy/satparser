@@ -88,10 +88,15 @@ tasks.withType<Test> {
 val username = System.getenv("CONTAINER_REGISTRY_USERNAME") ?: ""
 val token = System.getenv("CONTAINER_REGISTRY_TOKEN") ?: ""
 
+println("------------------------------------------------------------")
+println(username)
+println(token)
+println("------------------------------------------------------------")
+
 jib {
     to {
         auth {
-            username = "artemkaxboy"
+            username = username
             password = token
         }
         image = "${dockerRegistry}${project.name}:${project.version}"
