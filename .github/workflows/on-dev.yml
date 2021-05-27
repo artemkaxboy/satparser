@@ -30,16 +30,16 @@ jobs:
         with:
           java-version: 11
 
-      - name: Test
+      - name: Test1
         run: export
 
-      - name: Test
+      - name: Test2
         env:
           CONTAINER_REGISTRY_TOKEN: ${{ secrets.CONTAINER_REGISTRY_TOKEN }}
           TEST_TOKEN: ${{ github.actor }}
         run: export
 
-      - name: Test
+      - name: Test3
         env:
           CONTAINER_REGISTRY_TOKEN: ${{ secrets.CONTAINER_REGISTRY_TOKEN }}
         run: echo $secrets.CONTAINER_REGISTRY_TOKEN
@@ -48,9 +48,8 @@ jobs:
         uses: eskatos/gradle-command-action@v1
         with:
           arguments: |
-            clean
-#            jib -Djib.to.auth.username=${{ github.actor }}
-#                -Djib.to.auth.password=${{ github.actor }}
+            jib -Djib.to.auth.username=${{ github.actor }}
+                -Djib.to.auth.password=${{ secrets.CONTAINER_REGISTRY_TOKEN }}
 
 #      - name: Run check
 #        # @doc https://github.com/eskatos/gradle-command-action
