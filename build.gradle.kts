@@ -1,19 +1,27 @@
+import org.ajoberstar.grgit.Commit
+import org.ajoberstar.grgit.Grgit
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.springframework.boot") version "2.4.3"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
-    id("com.google.cloud.tools.jib") version "3.0.0"
     kotlin("jvm") version "1.5.0"
     kotlin("plugin.spring") version "1.5.0"
     kotlin("plugin.jpa") version "1.5.0"
     kotlin("kapt") version "1.5.0"
+
+/*-------------------------------- JIB -----------------------------------------------*/
+    id("com.google.cloud.tools.jib") version "3.0.0"
+    id("org.ajoberstar.grgit") version "4.1.0"
+/*-------------------------------- JIB -----------------------------------------------*/
+
 }
 
-group = "com.artemkaxboy"
-version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_11
-val dockerRegistry by extra { properties["dockerRegistry"] as String }
+group = "com.artemkaxboy"
+version = project.property("applicationVersion") as String
+val minorVersion = "$version".replace("^(\\d+\\.\\d+).*$".toRegex(), "$1")
+val majorVersion = "$version".replace("^(\\d+).*$".toRegex(), "$1")
 
 configurations {
     compileOnly {
@@ -85,13 +93,16 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+/*-------------------------------- JIB -----------------------------------------------*/
+val dockerRegistry by extra { properties["dockerRegistry"] as String }
+
+// https://stackoverflow.com/questions/55749856/gradle-dsl-method-not-found-versioncode
+val commit: Commit = Grgit.open { currentDir = projectDir }.head()
+val commitTime = "${commit.dateTime}"
+val commitHash = commit.id.take(8) // short commit id contains 8 chars
+
 val user = System.getenv("CONTAINER_REGISTRY_USERNAME") ?: ""
 val token = System.getenv("CONTAINER_REGISTRY_TOKEN") ?: ""
-
-println("------------------------------------------------------------")
-println(user)
-println(token)
-println("------------------------------------------------------------")
 
 jib {
     to {
@@ -99,8 +110,37 @@ jib {
             username = user
             password = token
         }
-        image = "${dockerRegistry}${project.name}:${project.version}"
+        image = "${dockerRegistry}/${project.name}"
+        tags = setOf("$version", minorVersion, majorVersion)
     }
 
-    setAllowInsecureRegistries(true)
+    val author: String by project
+    val sourceUrl: String by project
+
+    container {
+        user = "999:999"
+        creationTime = commitTime
+        ports = listOf("8080")
+
+        environment = mapOf(
+            "APPLICATION_NAME" to name,
+            "APPLICATION_VERSION" to "$version",
+            "APPLICATION_REVISION" to commitHash
+        )
+
+        labels = mapOf(
+            "maintainer" to author,
+            "org.opencontainers.image.created" to commitTime,
+            "org.opencontainers.image.authors" to author,
+            "org.opencontainers.image.url" to sourceUrl,
+            "org.opencontainers.image.documentation" to sourceUrl,
+            "org.opencontainers.image.source" to sourceUrl,
+            "org.opencontainers.image.version" to "$version",
+            "org.opencontainers.image.revision" to commitHash,
+            "org.opencontainers.image.vendor" to author,
+            "org.opencontainers.image.title" to name
+        )
+    }
+
 }
+/*-------------------------------- JIB -----------------------------------------------*/
