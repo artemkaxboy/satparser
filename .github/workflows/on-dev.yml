@@ -36,6 +36,7 @@ jobs:
           CONTAINER_REGISTRY_TOKEN: ${{ secrets.CONTAINER_REGISTRY_TOKEN }}
         uses: eskatos/gradle-command-action@v1
         with:
+          # https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties
           arguments: jib -Dorg.gradle.console=plain
 
 #      - name: Run check
