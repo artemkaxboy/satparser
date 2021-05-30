@@ -99,7 +99,13 @@ val lastCommit: Commit = Grgit.open { currentDir = projectDir }.head()
 val lastCommitTime = "${lastCommit.dateTime}"
 val lastCommitHash = lastCommit.id.take(8) // short commit id contains 8 chars
 
-//val dockerUrl by extra { properties["dockerRegistry.url"] as String }
+// System properties as systemProp.jib.to.auth.username cannot be set as env variable
+// They suggest to use -Djib.to.auth.username instead:
+// https://discuss.gradle.org/t/setting-properties-via-org-gradle-project--environment-variables-is-impossible-for-names-with-in-them/1896
+// But github actions suggests to avoid passing secrets through the command-line
+// https://docs.github.com/en/actions/reference/encrypted-secrets#using-encrypted-secrets-in-a-workflow
+// That's why custom env variables are used here. At the same time we can use -Djib... command line options to override
+// current envs.
 val jibUsername = System.getenv("CONTAINER_REGISTRY_USERNAME") ?: ""
 val jibPassword = System.getenv("CONTAINER_REGISTRY_TOKEN") ?: ""
 
