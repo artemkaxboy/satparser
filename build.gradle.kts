@@ -33,8 +33,6 @@ repositories {
     mavenCentral()
 }
 
-extra["testcontainersVersion"] = "1.15.3"
-
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 
@@ -76,9 +74,11 @@ dependencies {
     kapt("org.springframework.boot:spring-boot-configuration-processor")
 }
 
+val testcontainersVersion = "1.15.3"
+
 dependencyManagement {
     imports {
-        mavenBom("org.testcontainers:testcontainers-bom:${property("testcontainersVersion")}")
+        mavenBom("org.testcontainers:testcontainers-bom:$testcontainersVersion")
     }
 }
 
@@ -94,23 +94,21 @@ tasks.withType<Test> {
 }
 
 /*-------------------------------- JIB -----------------------------------------------*/
-val dockerRegistry by extra { properties["dockerRegistry"] as String }
-
 // https://stackoverflow.com/questions/55749856/gradle-dsl-method-not-found-versioncode
-val commit: Commit = Grgit.open { currentDir = projectDir }.head()
-val commitTime = "${commit.dateTime}"
-val commitHash = commit.id.take(8) // short commit id contains 8 chars
+val lastCommit: Commit = Grgit.open { currentDir = projectDir }.head()
+val lastCommitTime = "${lastCommit.dateTime}"
+val lastCommitHash = lastCommit.id.take(8) // short commit id contains 8 chars
 
-val user = System.getenv("CONTAINER_REGISTRY_USERNAME") ?: ""
-val token = System.getenv("CONTAINER_REGISTRY_TOKEN") ?: ""
+//val dockerUrl by extra { properties["dockerRegistry.url"] as String }
+val jibUsername = System.getenv("CONTAINER_REGISTRY_USERNAME") ?: ""
+val jibPassword = System.getenv("CONTAINER_REGISTRY_TOKEN") ?: ""
 
 jib {
     to {
         auth {
-            username = user
-            password = token
+            username = jibUsername
+            password = jibPassword
         }
-        image = "${dockerRegistry}/${project.name}"
         tags = setOf("$version", minorVersion, majorVersion)
     }
 
@@ -119,28 +117,27 @@ jib {
 
     container {
         user = "999:999"
-        creationTime = commitTime
+        creationTime = lastCommitTime
         ports = listOf("8080")
 
         environment = mapOf(
             "APPLICATION_NAME" to name,
             "APPLICATION_VERSION" to "$version",
-            "APPLICATION_REVISION" to commitHash
+            "APPLICATION_REVISION" to lastCommitHash
         )
 
         labels = mapOf(
             "maintainer" to author,
-            "org.opencontainers.image.created" to commitTime,
+            "org.opencontainers.image.created" to lastCommitTime,
             "org.opencontainers.image.authors" to author,
             "org.opencontainers.image.url" to sourceUrl,
             "org.opencontainers.image.documentation" to sourceUrl,
             "org.opencontainers.image.source" to sourceUrl,
             "org.opencontainers.image.version" to "$version",
-            "org.opencontainers.image.revision" to commitHash,
+            "org.opencontainers.image.revision" to lastCommitHash,
             "org.opencontainers.image.vendor" to author,
             "org.opencontainers.image.title" to name
         )
     }
-
 }
 /*-------------------------------- JIB -----------------------------------------------*/
