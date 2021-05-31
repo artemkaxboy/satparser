@@ -10,7 +10,7 @@ class MetricsAlertGateway(
 ) : AlertGateway {
 
     override fun alert(category: String) =
-        metricsRegistry.countError(category)
+        metricsRegistry.countError(category).toLong()
 
     override fun alert(category: String, message: () -> String) =
         alert(category)

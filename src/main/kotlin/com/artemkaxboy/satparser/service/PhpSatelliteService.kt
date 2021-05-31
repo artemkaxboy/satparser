@@ -1,6 +1,7 @@
 package com.artemkaxboy.satparser.service
 
 import com.artemkaxboy.satparser.entity.PhpSatelliteEntity
+import com.artemkaxboy.satparser.metrics.Meter
 import com.artemkaxboy.satparser.metrics.MetricsRegistry
 import com.artemkaxboy.satparser.repository.PhpSatelliteRepository
 import mu.KotlinLogging
@@ -28,7 +29,7 @@ class PhpSatelliteService(
 
         return phpSatelliteRepository.findByStatusIs(PhpSatelliteEntity.Status.OPENED.value)
             .log("Got db satellites: ")
-            .also { metricsRegistry.updateLocalAllSatellitesCount(it.size) }
+            .also { metricsRegistry.updateMeter(Meter.SATELLITES_DB_ALL, it.size) }
     }
 
 
@@ -39,7 +40,7 @@ class PhpSatelliteService(
 
         return findNewSatellites(fetchedList, existingList)
             .log("Save new satellites: ")
-            .also { metricsRegistry.updateLocalNewSatellitesCount(it.size) }
+            .also { metricsRegistry.updateMeter(Meter.SATELLITES_DB_NEW, it.size) }
             .let { phpSatelliteRepository.saveAll(it) }
     }
 
@@ -59,7 +60,7 @@ class PhpSatelliteService(
 
         return findClosedSatellites(fetchedSatellites, existingList)
             .log("Save closed satellites: ")
-            .also { metricsRegistry.updateLocalClosedSatellitesCount(it.size) }
+            .also { metricsRegistry.updateMeter(Meter.SATELLITES_DB_CLOSED, it.size) }
             .let { phpSatelliteRepository.saveAll(it) }
     }
 
@@ -80,7 +81,7 @@ class PhpSatelliteService(
 
         return findChangedSatellites(fetchedSatellites, existingSatellites)
             .log("Save changed satellites: ")
-            .also { metricsRegistry.updateLocalChangedSatellitesCount(it.size) }
+            .also { metricsRegistry.updateMeter(Meter.SATELLITES_DB_CHANGED, it.size) }
             .also { phpSatelliteRepository.saveAll(it) }
     }
 

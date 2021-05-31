@@ -1,5 +1,6 @@
 package com.artemkaxboy.satparser.parser
 
+import com.artemkaxboy.satparser.metrics.Meter
 import com.artemkaxboy.satparser.metrics.MetricsRegistry
 import com.artemkaxboy.satparser.service.PhpSatelliteService
 import com.artemkaxboy.satparser.task.Task
@@ -19,7 +20,7 @@ class MainParserTask(
     override fun run() {
         mainParser.parse()
             .also { logger.info { "Got online satellites: ${it.size}" } }
-            .also { metricsRegistry.updateOnlineSatellitesCount(it.size) }
+            .also { metricsRegistry.updateMeter(Meter.SATELLITES_ONLINE, it.size) }
             .map { it.toPhpEntity() }
             .also(phpSatelliteService::sync)
 

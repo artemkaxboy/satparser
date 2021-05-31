@@ -10,84 +10,93 @@ import java.util.concurrent.atomic.AtomicInteger
 import javax.annotation.PostConstruct
 
 private const val ERROR_COUNTER_NAME = "application.errors"
-private const val ERROR_COUNTER_TYPE_TAG = "type"
-private const val DB_LOADED_SATELLITE_GAUGE_NAME = "application.satellite.db"
+private const val ERROR_TYPE_TAG_NAME = "type"
 
-private const val SATELLITES_ONLINE_COUNT = "application.satellite.online"
+private const val ONLINE_SATELLITES_GAUGE_NAME = "application.satellite.online"
 
+private const val LOCAL_SATELLITES_GAUGE_NAME = "application.satellite.db"
 private const val LOCAL_SATELLITES_STATUS_TAG_NAME = "status"
-private const val LOCAL_SATELLITES_STATUS_ALL = "all"
-private const val LOCAL_SATELLITES_STATUS_NEW = "new"
-private const val LOCAL_SATELLITES_STATUS_CLOSED = "closed"
-private const val LOCAL_SATELLITES_STATUS_CHANGED = "changed"
 
-private const val DEFAULT_COUNT_VALUE = 0
+private const val TAG_ALL = "all"
+private const val TAG_NEW = "new"
+private const val TAG_CLOSED = "closed"
+private const val TAG_CHANGED = "changed"
 
 @Component
 class MetricsRegistry(private val meterRegistry: MeterRegistry) {
 
-    @PostConstruct
-    fun initMeters() {
+    private val counters = ConcurrentHashMap<ObjectIdentifier, Counter>()
+    private val gauges = ConcurrentHashMap<ObjectIdentifier, AtomicInteger>()
 
-        updateOnlineSatellitesCount(DEFAULT_COUNT_VALUE)
-        updateLocalAllSatellitesCount(DEFAULT_COUNT_VALUE)
-        updateLocalNewSatellitesCount(DEFAULT_COUNT_VALUE)
-        updateLocalClosedSatellitesCount(DEFAULT_COUNT_VALUE)
-        updateLocalChangedSatellitesCount(DEFAULT_COUNT_VALUE)
+    @PostConstruct
+    private fun initMeters() {
+
+        Meter.values().forEach {
+            getGauge(it.meterName, it.tag)
+        }
     }
 
-    fun updateOnlineSatellitesCount(value: Int) = getGauge(SATELLITES_ONLINE_COUNT).set(value)
+    fun updateMeter(meter: Meter, value: Int) {
 
-    fun updateLocalAllSatellitesCount(value: Int) = getGauge(
-        DB_LOADED_SATELLITE_GAUGE_NAME,
-        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, LOCAL_SATELLITES_STATUS_ALL),
-    ).set(value)
+        getGauge(meter.meterName).set(value)
+    }
 
-    fun updateLocalNewSatellitesCount(value: Int) = getGauge(
-        DB_LOADED_SATELLITE_GAUGE_NAME,
-        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, LOCAL_SATELLITES_STATUS_NEW),
-    ).set(value)
+    fun count(meter: Meter, tag: Tag?) =
+        getCounter(meter.meterName, tag ?: meter.tag).apply { increment() }.count()
 
-    fun updateLocalClosedSatellitesCount(value: Int) = getGauge(
-        DB_LOADED_SATELLITE_GAUGE_NAME,
-        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, LOCAL_SATELLITES_STATUS_CLOSED),
-    ).set(value)
+    fun countError(type: String): Double {
 
-    fun updateLocalChangedSatellitesCount(value: Int) = getGauge(
-        DB_LOADED_SATELLITE_GAUGE_NAME,
-        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, LOCAL_SATELLITES_STATUS_CHANGED),
-    ).set(value)
+        count(Meter.ERRORS, ImmutableTag(ERROR_TYPE_TAG_NAME, type))
+        return count(Meter.ERRORS, null)
+    }
 
-    /*-----------------------------------------------------------------------------*/
+    private fun getCounter(name: String, tag: Tag? = null) =
+        getCounter(name, if (tag == null) emptyList() else listOf(tag))
 
-    val counters = ConcurrentHashMap<ObjectIdentifier, Counter>()
+    private fun getCounter(name: String, tags: List<Tag>) = getCounter(ObjectIdentifier(name, tags))
 
-    fun getCounter(name: String, tag: Tag? = null) = getCounter(name, if (tag == null) emptyList() else listOf(tag))
-
-    fun getCounter(name: String, tags: List<Tag>) = getCounter(ObjectIdentifier(name, tags))
-
-    fun getCounter(identifier: ObjectIdentifier): Counter {
+    private fun getCounter(identifier: ObjectIdentifier): Counter {
 
         return counters.getOrPut(identifier) { meterRegistry.counter(identifier.name, identifier.tags) }
     }
 
-    val gauges = ConcurrentHashMap<ObjectIdentifier, AtomicInteger>()
+    private fun getGauge(name: String, tag: Tag? = null) = getGauge(name, if (tag == null) emptyList() else listOf(tag))
 
-    fun getGauge(name: String, tag: Tag? = null) = getGauge(name, if (tag == null) emptyList() else listOf(tag))
+    private fun getGauge(name: String, tags: List<Tag>) = getGauge(ObjectIdentifier(name, tags))
 
-    fun getGauge(name: String, tags: List<Tag>) = getGauge(ObjectIdentifier(name, tags))
-
-    fun getGauge(identifier: ObjectIdentifier): AtomicInteger {
+    private fun getGauge(identifier: ObjectIdentifier): AtomicInteger {
 
         return gauges.getOrPut(identifier) {
             requireNotNull(meterRegistry.gauge(identifier.name, identifier.tags, AtomicInteger()))
         }
     }
 
-    fun countError(type: String) =
-        countAndReturn(getCounter(ERROR_COUNTER_NAME, ImmutableTag(ERROR_COUNTER_TYPE_TAG, type)))
+    private data class ObjectIdentifier(val name: String, val tags: List<Tag>)
+}
 
-    private fun countAndReturn(counter: Counter) = counter.apply { increment() }.count().toLong()
+enum class Meter(val meterName: String, val tag: Tag?) {
 
-    data class ObjectIdentifier(val name: String, val tags: List<Tag>)
+    SATELLITES_ONLINE(ONLINE_SATELLITES_GAUGE_NAME, null),
+
+    SATELLITES_DB_ALL(
+        LOCAL_SATELLITES_GAUGE_NAME,
+        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, TAG_ALL)
+    ),
+
+    SATELLITES_DB_NEW(
+        LOCAL_SATELLITES_GAUGE_NAME,
+        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, TAG_NEW)
+    ),
+
+    SATELLITES_DB_CLOSED(
+        LOCAL_SATELLITES_GAUGE_NAME,
+        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, TAG_CLOSED)
+    ),
+
+    SATELLITES_DB_CHANGED(
+        LOCAL_SATELLITES_GAUGE_NAME,
+        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, TAG_CHANGED)
+    ),
+
+    ERRORS(ERROR_COUNTER_NAME, ImmutableTag(ERROR_TYPE_TAG_NAME, TAG_ALL)),
 }
