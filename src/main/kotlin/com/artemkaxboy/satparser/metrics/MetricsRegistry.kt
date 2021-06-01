@@ -31,23 +31,27 @@ class MetricsRegistry(private val meterRegistry: MeterRegistry) {
     @PostConstruct
     private fun initMeters() {
 
-        Meter.values().forEach {
+        Gauges.values().forEach {
             getGauge(it.meterName, it.tag)
+        }
+
+        Counters.values().forEach {
+            getCounter(it.meterName, it.tag)
         }
     }
 
-    fun updateGauge(meter: Meter, value: Int) {
+    fun updateGauge(counter: Gauges, value: Int) {
 
-        getGauge(meter.meterName, meter.tag).set(value)
+        getGauge(counter.meterName, counter.tag).set(value)
     }
 
-    fun count(meter: Meter, tag: Tag?) =
-        getCounter(meter.meterName, tag ?: meter.tag).apply { increment() }.count()
+    fun count(counter: Counters, tag: Tag?) =
+        getCounter(counter.meterName, tag ?: counter.tag).apply { increment() }.count()
 
     fun countError(type: String): Double {
 
-        count(Meter.ERRORS, ImmutableTag(ERROR_TYPE_TAG_NAME, type))
-        return count(Meter.ERRORS, null)
+//        count(Counters.ERRORS, ImmutableTag(ERROR_TYPE_TAG_NAME, type))
+        return count(Counters.ERRORS, null)
     }
 
     private fun getCounter(name: String, tag: Tag? = null) =
@@ -74,29 +78,32 @@ class MetricsRegistry(private val meterRegistry: MeterRegistry) {
     private data class ObjectIdentifier(val name: String, val tags: List<Tag>)
 }
 
-enum class Meter(val meterName: String, val tag: Tag?) {
+enum class Gauges(val meterName: String, val tag: Tag?) {
 
     SATELLITES_ONLINE(ONLINE_SATELLITES_GAUGE_NAME, null),
 
     SATELLITES_DB_ALL(
         LOCAL_SATELLITES_GAUGE_NAME,
-        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, TAG_ALL)
+        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, TAG_ALL),
     ),
 
     SATELLITES_DB_NEW(
         LOCAL_SATELLITES_GAUGE_NAME,
-        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, TAG_NEW)
+        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, TAG_NEW),
     ),
 
     SATELLITES_DB_CLOSED(
         LOCAL_SATELLITES_GAUGE_NAME,
-        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, TAG_CLOSED)
+        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, TAG_CLOSED),
     ),
 
     SATELLITES_DB_CHANGED(
         LOCAL_SATELLITES_GAUGE_NAME,
-        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, TAG_CHANGED)
+        ImmutableTag(LOCAL_SATELLITES_STATUS_TAG_NAME, TAG_CHANGED),
     ),
+}
 
-    ERRORS(ERROR_COUNTER_NAME, ImmutableTag(ERROR_TYPE_TAG_NAME, TAG_ALL)),
+enum class Counters(val meterName: String, val tag: Tag?) {
+
+    ERRORS(ERROR_COUNTER_NAME, null),
 }

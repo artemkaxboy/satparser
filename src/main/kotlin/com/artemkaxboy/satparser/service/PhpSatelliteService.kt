@@ -1,15 +1,17 @@
 package com.artemkaxboy.satparser.service
 
 import com.artemkaxboy.satparser.alerting.AlertGateway
+import com.artemkaxboy.satparser.alerting.CATEGORY_CHANGES
 import com.artemkaxboy.satparser.entity.PhpSatelliteEntity
-import com.artemkaxboy.satparser.metrics.Meter
+import com.artemkaxboy.satparser.metrics.Gauges
 import com.artemkaxboy.satparser.metrics.MetricsRegistry
 import com.artemkaxboy.satparser.repository.PhpSatelliteRepository
+import com.artemkaxboy.satparser.tools.rollbackTransaction
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.interceptor.TransactionAspectSupport
 import javax.transaction.Transactional
-import kotlin.math.max
+import kotlin.math.absoluteValue
 
 private val logger = KotlinLogging.logger {}
 
@@ -24,7 +26,11 @@ class PhpSatelliteService(
 ) {
 
     private fun isTooMuchChanges(allElementsCount: Int, changedElementsCount: Int): Boolean {
-        return allElementsCount * UPDATE_THRESHOLD_PERCENT / 100 >= changedElementsCount
+        return changedElementsCount > allElementsCount * UPDATE_THRESHOLD_PERCENT / 100
+    }
+
+    private fun isTooMuchDifference(elementsCount: Int, newElementsCount: Int): Boolean {
+        return (elementsCount - newElementsCount).absoluteValue > elementsCount * UPDATE_THRESHOLD_PERCENT / 100
     }
 
     @Transactional
@@ -32,20 +38,28 @@ class PhpSatelliteService(
 
         val dbSatellites = findAll()
 
-        isTooMuchChanges(dbSatellites.size)
+        if (isTooMuchDifference(dbSatellites.size, fetchedList.size)) {
+
+            alertGateway.alert(CATEGORY_CHANGES)
+                .let { "#$it - Changes between existing and new satellite list are too massive\n" +
+                        "Saved satellites count: ${dbSatellites.size}\n" +
+                        "Online satellites count: ${fetchedList.size}" }
+                .also { logger.error { it } }
+
+            rollbackTransaction()
+            return
+        }
 
         saveNewSatellites(fetchedList, dbSatellites)
         saveChangedSatellites(fetchedList, dbSatellites)
         saveClosedSatellites(fetchedList, dbSatellites)
-
-        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
     }
 
     fun findAll(): List<PhpSatelliteEntity> {
 
         return phpSatelliteRepository.findByStatusIs(PhpSatelliteEntity.Status.OPENED.value)
             .log("Got db satellites: ")
-            .also { metricsRegistry.updateGauge(Meter.SATELLITES_DB_ALL, it.size) }
+            .also { metricsRegistry.updateGauge(Gauges.SATELLITES_DB_ALL, it.size) }
     }
 
 
@@ -56,11 +70,11 @@ class PhpSatelliteService(
 
         val newSatellites = findNewSatellites(fetchedList, existingList)
 
-        if (isTooMuchChanges(max(fetchedList, existingList)))
+//        if (isTooMuchChanges(max(fetchedList, existingList)))
 
         return newSatellites
             .log("Save new satellites: ")
-            .also { metricsRegistry.updateGauge(Meter.SATELLITES_DB_NEW, it.size) }
+            .also { metricsRegistry.updateGauge(Gauges.SATELLITES_DB_NEW, it.size) }
             .let { phpSatelliteRepository.saveAll(it) }
     }
 
@@ -80,7 +94,7 @@ class PhpSatelliteService(
 
         return findClosedSatellites(fetchedSatellites, existingList)
             .log("Save closed satellites: ")
-            .also { metricsRegistry.updateGauge(Meter.SATELLITES_DB_CLOSED, it.size) }
+            .also { metricsRegistry.updateGauge(Gauges.SATELLITES_DB_CLOSED, it.size) }
             .let { phpSatelliteRepository.saveAll(it) }
     }
 
@@ -101,7 +115,7 @@ class PhpSatelliteService(
 
         return findChangedSatellites(fetchedSatellites, existingSatellites)
             .log("Save changed satellites: ")
-            .also { metricsRegistry.updateGauge(Meter.SATELLITES_DB_CHANGED, it.size) }
+            .also { metricsRegistry.updateGauge(Gauges.SATELLITES_DB_CHANGED, it.size) }
             .also { phpSatelliteRepository.saveAll(it) }
     }
 

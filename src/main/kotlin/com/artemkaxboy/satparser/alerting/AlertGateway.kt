@@ -1,6 +1,7 @@
 package com.artemkaxboy.satparser.alerting
 
 const val CATEGORY_API = "api"
+const val CATEGORY_CHANGES = "changes"
 
 interface AlertGateway {
 
