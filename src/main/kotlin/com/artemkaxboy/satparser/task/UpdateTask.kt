@@ -5,11 +5,11 @@ import org.springframework.scheduling.annotation.Scheduled
 private const val SECOND = 1_000L
 
 class UpdateTask(
-    private val tasks: Set<Task>,
+    private val tasks: Set<ITask>,
 ) {
 
     @Scheduled(fixedDelayString = "#{@devConfiguration.properties.testTaskInterval.toMillis()}", initialDelay = SECOND)
-    fun updateTask() {
+    fun run() {
 
         tasks.forEach { task ->
             task.run()

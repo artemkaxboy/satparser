@@ -3,7 +3,7 @@ package com.artemkaxboy.satparser.parser
 import com.artemkaxboy.satparser.metrics.Meter
 import com.artemkaxboy.satparser.metrics.MetricsRegistry
 import com.artemkaxboy.satparser.service.PhpSatelliteService
-import com.artemkaxboy.satparser.task.Task
+import com.artemkaxboy.satparser.task.ITask
 import mu.KotlinLogging
 import org.springframework.stereotype.Component
 
@@ -15,7 +15,7 @@ class MainParserTask(
     private val mainParser: MainParser,
     private val phpSatelliteService: PhpSatelliteService,
     private val metricsRegistry: MetricsRegistry,
-) : Task() {
+) : ITask {
 
     override fun run() {
         mainParser.parse()

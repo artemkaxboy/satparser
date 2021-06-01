@@ -12,7 +12,7 @@ private val logger = KotlinLogging.logger {}
 @Profile("dev")
 class TestTask(
     val devProperties: DevProperties,
-) : Task() {
+) : ITask {
 
     override fun run() {
         if (devProperties.logGenerator) {

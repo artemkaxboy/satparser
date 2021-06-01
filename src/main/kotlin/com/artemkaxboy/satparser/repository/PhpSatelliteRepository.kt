@@ -12,6 +12,4 @@ interface PhpSatelliteRepositoryI : JpaRepository<PhpSatelliteEntity, Int> {
 @Repository
 class PhpSatelliteRepository(
     phpSatelliteRepositoryI: PhpSatelliteRepositoryI,
-) : PhpSatelliteRepositoryI by phpSatelliteRepositoryI {
-
-}
+) : PhpSatelliteRepositoryI by phpSatelliteRepositoryI
