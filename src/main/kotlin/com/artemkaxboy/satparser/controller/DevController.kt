@@ -26,6 +26,6 @@ class TestController(
     @RequestMapping(value = ["/error/{category}"], method = [RequestMethod.GET])
     @ResponseBody
     fun error(@PathVariable("category") category: String): String {
-        return metricsRegistry.countError(category).toInt().toString()
+        return metricsRegistry.countError(category).toLong().toString()
     }
 }

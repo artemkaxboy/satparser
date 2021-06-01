@@ -29,7 +29,7 @@ class PhpSatelliteService(
 
         return phpSatelliteRepository.findByStatusIs(PhpSatelliteEntity.Status.OPENED.value)
             .log("Got db satellites: ")
-            .also { metricsRegistry.updateMeter(Meter.SATELLITES_DB_ALL, it.size) }
+            .also { metricsRegistry.updateGauge(Meter.SATELLITES_DB_ALL, it.size) }
     }
 
 
@@ -40,7 +40,7 @@ class PhpSatelliteService(
 
         return findNewSatellites(fetchedList, existingList)
             .log("Save new satellites: ")
-            .also { metricsRegistry.updateMeter(Meter.SATELLITES_DB_NEW, it.size) }
+            .also { metricsRegistry.updateGauge(Meter.SATELLITES_DB_NEW, it.size) }
             .let { phpSatelliteRepository.saveAll(it) }
     }
 
@@ -60,7 +60,7 @@ class PhpSatelliteService(
 
         return findClosedSatellites(fetchedSatellites, existingList)
             .log("Save closed satellites: ")
-            .also { metricsRegistry.updateMeter(Meter.SATELLITES_DB_CLOSED, it.size) }
+            .also { metricsRegistry.updateGauge(Meter.SATELLITES_DB_CLOSED, it.size) }
             .let { phpSatelliteRepository.saveAll(it) }
     }
 
@@ -81,7 +81,7 @@ class PhpSatelliteService(
 
         return findChangedSatellites(fetchedSatellites, existingSatellites)
             .log("Save changed satellites: ")
-            .also { metricsRegistry.updateMeter(Meter.SATELLITES_DB_CHANGED, it.size) }
+            .also { metricsRegistry.updateGauge(Meter.SATELLITES_DB_CHANGED, it.size) }
             .also { phpSatelliteRepository.saveAll(it) }
     }
 

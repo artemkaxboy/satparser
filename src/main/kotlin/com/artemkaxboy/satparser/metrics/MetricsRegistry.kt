@@ -36,9 +36,9 @@ class MetricsRegistry(private val meterRegistry: MeterRegistry) {
         }
     }
 
-    fun updateMeter(meter: Meter, value: Int) {
+    fun updateGauge(meter: Meter, value: Int) {
 
-        getGauge(meter.meterName).set(value)
+        getGauge(meter.meterName, meter.tag).set(value)
     }
 
     fun count(meter: Meter, tag: Tag?) =

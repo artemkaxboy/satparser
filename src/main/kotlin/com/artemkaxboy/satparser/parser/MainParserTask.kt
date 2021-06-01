@@ -20,7 +20,7 @@ class MainParserTask(
     override fun run() {
         mainParser.parse()
             .also { logger.info { "Got online satellites: ${it.size}" } }
-            .also { metricsRegistry.updateMeter(Meter.SATELLITES_ONLINE, it.size) }
+            .also { metricsRegistry.updateGauge(Meter.SATELLITES_ONLINE, it.size) }
             .map { it.toPhpEntity() }
             .also(phpSatelliteService::sync)
 
