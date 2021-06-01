@@ -1,28 +1,44 @@
 package com.artemkaxboy.satparser.service
 
+import com.artemkaxboy.satparser.alerting.AlertGateway
 import com.artemkaxboy.satparser.entity.PhpSatelliteEntity
 import com.artemkaxboy.satparser.metrics.Meter
 import com.artemkaxboy.satparser.metrics.MetricsRegistry
 import com.artemkaxboy.satparser.repository.PhpSatelliteRepository
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
+import org.springframework.transaction.interceptor.TransactionAspectSupport
+import javax.transaction.Transactional
+import kotlin.math.max
 
 private val logger = KotlinLogging.logger {}
+
+private const val UPDATE_THRESHOLD_PERCENT = 10
 
 @Service
 class PhpSatelliteService(
 
     private val phpSatelliteRepository: PhpSatelliteRepository,
     private val metricsRegistry: MetricsRegistry,
+    private val alertGateway: AlertGateway,
 ) {
 
+    private fun isTooMuchChanges(allElementsCount: Int, changedElementsCount: Int): Boolean {
+        return allElementsCount * UPDATE_THRESHOLD_PERCENT / 100 >= changedElementsCount
+    }
+
+    @Transactional
     fun sync(fetchedList: Collection<PhpSatelliteEntity>) {
 
         val dbSatellites = findAll()
 
+        isTooMuchChanges(dbSatellites.size)
+
         saveNewSatellites(fetchedList, dbSatellites)
         saveChangedSatellites(fetchedList, dbSatellites)
         saveClosedSatellites(fetchedList, dbSatellites)
+
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly()
     }
 
     fun findAll(): List<PhpSatelliteEntity> {
@@ -38,7 +54,11 @@ class PhpSatelliteService(
         existingList: Collection<PhpSatelliteEntity>
     ): List<PhpSatelliteEntity> {
 
-        return findNewSatellites(fetchedList, existingList)
+        val newSatellites = findNewSatellites(fetchedList, existingList)
+
+        if (isTooMuchChanges(max(fetchedList, existingList)))
+
+        return newSatellites
             .log("Save new satellites: ")
             .also { metricsRegistry.updateGauge(Meter.SATELLITES_DB_NEW, it.size) }
             .let { phpSatelliteRepository.saveAll(it) }
