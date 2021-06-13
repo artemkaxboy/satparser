@@ -1,9 +1,9 @@
-package com.artemkaxboy.satparser.parser
+package com.artemkaxboy.satparser.task
 
 import com.artemkaxboy.satparser.metrics.Gauges
 import com.artemkaxboy.satparser.metrics.MetricsRegistry
+import com.artemkaxboy.satparser.parser.MainParser
 import com.artemkaxboy.satparser.service.PhpSatelliteService
-import com.artemkaxboy.satparser.task.ITask
 import mu.KotlinLogging
 import org.springframework.stereotype.Component
 

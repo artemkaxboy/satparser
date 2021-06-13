@@ -1,4 +1,6 @@
 logging.level.com.artemkaxboy: DEBUG
 
-dev.log-generator: false
+#spring.jpa.show-sql: true
+
+#dev.log-generator: false
 #dev.test-task-interval: 2s

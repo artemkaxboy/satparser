@@ -2,9 +2,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-#    show-sql: true
     properties:
       hibernate:
         format_sql: true
 
-management.endpoints.web.exposure.include: prometheus,health,info
+dev.test-task-interval: 22h
