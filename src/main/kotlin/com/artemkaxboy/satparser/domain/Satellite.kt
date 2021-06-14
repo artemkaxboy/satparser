@@ -1,7 +1,6 @@
 package com.artemkaxboy.satparser.domain
 
 import com.artemkaxboy.satparser.entity.PhpSatelliteEntity
-import com.artemkaxboy.satparser.entity.SatelliteDoc
 import java.time.LocalDate
 
 private const val PHP_TAGS_SEPARATOR = ";"
@@ -26,15 +25,4 @@ data class Satellite(
             band = band ?: PHP_DEFAULT_BAND,
             tags = packs.joinToString(PHP_TAGS_SEPARATOR) { it.name },
         )
-
-    fun toDoc(): SatelliteDoc =
-        SatelliteDoc(
-            name = name,
-            position = position,
-            url = url,
-            band = band,
-            oldName = oldName,
-            packs = packs.map(Pack::toDoc),
-        )
-
 }

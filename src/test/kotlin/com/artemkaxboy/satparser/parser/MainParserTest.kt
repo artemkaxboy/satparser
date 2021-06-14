@@ -1,5 +1,7 @@
 package com.artemkaxboy.satparser.parser
 
+import com.artemkaxboy.satparser.SatelliteParserApplication
+import com.artemkaxboy.satparser.metrics.MetricsRegistry
 import com.artemkaxboy.satparser.testtools.TestContainers
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -9,14 +11,15 @@ import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfigurat
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 
-// todo move to integrationTest
-
+@SpringBootTest(classes = [SatelliteParserApplication::class])
 @ExtendWith(SpringExtension::class)
 @EnableAutoConfiguration(
     exclude = [

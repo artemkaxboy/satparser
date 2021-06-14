@@ -7,13 +7,13 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConfigurationProperties(prefix = "datasource")
 class DatasourceProperties(
 
-    val baseUrl: String,
+    val baseUrl: String = "",
 
     private val satellitePrefix: String = "",
 
     private val packsPrefix: String = "packages/",
 
-    private val pageNames: List<String>,
+    private val pageNames: List<String> = emptyList(),
 ) {
 
     fun satellitePageUrls() = pageNames.map { page -> baseUrl + satellitePrefix + page }

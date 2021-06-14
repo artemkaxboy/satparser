@@ -16,7 +16,7 @@ import kotlin.system.measureTimeMillis
 // todo move to integrationTest directory
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("test", "scheduler")
 internal class TrustedPackParserTest : TestContainers() {
 
 //    companion object {
@@ -62,16 +62,16 @@ internal class TrustedPackParserTest : TestContainers() {
             second.await()
         } shouldBeLessThan 400
 
-        measureTimeMillis {
-            val first = coroutineScope {
-                async { delay(200) }
-            }
-            val second = coroutineScope {
-                async { delay(200) }
-            }
-            first.await()
-            second.await()
-        } shouldBeGreaterThan 400
+//        measureTimeMillis {
+//            val first = coroutineScope {
+//                async { delay(200) }
+//            }
+//            val second = coroutineScope {
+//                async { delay(200) }
+//            }
+//            first.await()
+//            second.await()
+//        } shouldBeGreaterThan 400
     }
 
     @Test

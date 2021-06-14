@@ -37,7 +37,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
+//    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
@@ -68,7 +68,7 @@ dependencies {
     // testcontainers
     testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.testcontainers:mysql")
-    testImplementation("org.testcontainers:mongodb")
+//    testImplementation("org.testcontainers:mongodb")
     testImplementation("org.testcontainers:junit-jupiter")
 
     kapt("org.springframework.boot:spring-boot-configuration-processor")

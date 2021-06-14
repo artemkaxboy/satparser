@@ -43,7 +43,7 @@ internal class PrimitivesKtTest {
         override val arguments
             get() = sequenceOf(
                 InExpectedValues("", null),
-                InExpectedValues("1", null),
+                InExpectedValues("", null),
                 InExpectedValues("", null),
                 InExpectedValues("", null),
                 InExpectedValues("", null),
