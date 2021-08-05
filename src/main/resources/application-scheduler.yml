@@ -1,1 +1,2 @@
 # used in class ScheduleConfig
+spring.config.activate.on-profile: prod
