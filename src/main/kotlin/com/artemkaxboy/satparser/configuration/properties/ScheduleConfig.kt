@@ -13,7 +13,7 @@ class ScheduleConfig(
     private val tasks: Set<ITask>,
 ) {
 
-    @Profile("scheduler")
+    @Profile("scheduler", "prod")
     @Bean
     fun updateTask(): UpdateTask {
         return UpdateTask(tasks)
