@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: Satellite Parser
   jpa:
     hibernate:
       ddl-auto: validate
