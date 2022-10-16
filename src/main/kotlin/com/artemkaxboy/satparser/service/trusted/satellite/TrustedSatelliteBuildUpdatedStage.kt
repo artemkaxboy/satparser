@@ -13,7 +13,7 @@ class TrustedSatelliteBuildUpdatedStage : TrustedSatelliteBuildStage {
     override fun process(jsoupRow: Element, builder: SatelliteDto.Builder) {
 
         builder.updated = jsoupRow.getColumns()
-            .last()
+            .last()!!
             .text()
             .let { parseDate(it) }
     }

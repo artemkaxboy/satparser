@@ -3,21 +3,21 @@ import org.ajoberstar.grgit.Grgit
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.4.3"
-    id("io.spring.dependency-management") version "1.0.11.RELEASE"
-    kotlin("jvm") version "1.5.0"
-    kotlin("plugin.spring") version "1.5.0"
-    kotlin("plugin.jpa") version "1.5.0"
-    kotlin("kapt") version "1.5.0"
+    id("org.springframework.boot") version "2.7.4"
+    id("io.spring.dependency-management") version "1.0.14.RELEASE"
+    kotlin("jvm") version "1.7.20"
+    kotlin("plugin.spring") version "1.7.20"
+    kotlin("plugin.jpa") version "1.7.20"
+    kotlin("kapt") version "1.7.20"
 
-/*-------------------------------- JIB -----------------------------------------------*/
-    id("com.google.cloud.tools.jib") version "3.0.0"
-    id("org.ajoberstar.grgit") version "4.1.0"
-/*-------------------------------- JIB -----------------------------------------------*/
+    /*-------------------------------- JIB -----------------------------------------------*/
+    id("com.google.cloud.tools.jib") version "3.3.0"
+    id("org.ajoberstar.grgit") version "5.0.0"
+    /*-------------------------------- JIB -----------------------------------------------*/
 
 }
 
-java.sourceCompatibility = JavaVersion.VERSION_11
+java.sourceCompatibility = JavaVersion.VERSION_17
 group = "com.artemkaxboy"
 version = project.property("applicationVersion") as String
 val minorVersion = "$version".replace("^(\\d+\\.\\d+).*$".toRegex(), "$1")
@@ -40,9 +40,9 @@ dependencies {
 //    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
-    implementation("org.jsoup:jsoup:1.13.1")
+    implementation("org.jsoup:jsoup:1.15.3")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("mysql:mysql-connector-java")
 //	runtimeOnly("org.postgresql:postgresql")
@@ -50,20 +50,20 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     // validation
-    implementation("org.hibernate:hibernate-validator:7.0.1.Final")
+    implementation("org.hibernate:hibernate-validator:8.0.0.Final")
 
     // metrics
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     // logging
-    implementation("io.github.microutils:kotlin-logging:1.5.9")
+    implementation("io.github.microutils:kotlin-logging:3.0.0")
 
     // mocking
-    testImplementation("io.mockk:mockk:1.11.0")
+    testImplementation("io.mockk:mockk:1.13.2")
     // https://phauer.com/2018/best-practices-unit-testing-kotlin/
-    testImplementation("io.kotest:kotest-runner-junit5:4.4.3")
-    testImplementation("io.kotest:kotest-assertions-core:4.4.3")
+    testImplementation("io.kotest:kotest-runner-junit5:5.5.0")
+    testImplementation("io.kotest:kotest-assertions-core:5.5.0")
 
     // testcontainers
     testImplementation("org.testcontainers:testcontainers")
@@ -84,8 +84,8 @@ dependencyManagement {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict", "-Xallow-result-return-type")
-        jvmTarget = "11"
+        freeCompilerArgs = listOf("-Xjsr305=strict", "-Xallow-result-return-type"/*, "-Xuse-k2" does not work yet*/)
+        jvmTarget = "17"
     }
 }
 
@@ -132,17 +132,19 @@ jib {
             "APPLICATION_REVISION" to lastCommitHash
         )
 
-        labels = mapOf(
-            "maintainer" to author,
-            "org.opencontainers.image.created" to lastCommitTime,
-            "org.opencontainers.image.authors" to author,
-            "org.opencontainers.image.url" to sourceUrl,
-            "org.opencontainers.image.documentation" to sourceUrl,
-            "org.opencontainers.image.source" to sourceUrl,
-            "org.opencontainers.image.version" to "$version",
-            "org.opencontainers.image.revision" to lastCommitHash,
-            "org.opencontainers.image.vendor" to author,
-            "org.opencontainers.image.title" to name
+        labels.putAll(
+            mapOf(
+                "maintainer" to author,
+                "org.opencontainers.image.created" to lastCommitTime,
+                "org.opencontainers.image.authors" to author,
+                "org.opencontainers.image.url" to sourceUrl,
+                "org.opencontainers.image.documentation" to sourceUrl,
+                "org.opencontainers.image.source" to sourceUrl,
+                "org.opencontainers.image.version" to "$version",
+                "org.opencontainers.image.revision" to lastCommitHash,
+                "org.opencontainers.image.vendor" to author,
+                "org.opencontainers.image.title" to name
+            )
         )
     }
 }
